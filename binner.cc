@@ -46,6 +46,9 @@ int saveMat (ofstream& out, const Mat& M) {
 }
 
 void MatProcessing(Mat &M) {
+    double scale = .1;
+    Size dSiz(M.cols * scale, M.rows * scale);
+    resize(M, M, dSiz);
 }
 
 int readMat( const string& filename, Mat& M){
@@ -156,7 +159,7 @@ int main (int argc, char** argv) {
             return -1;
         }
         // I MUST DO SOME IMG PROCESSING HERE!
-//        MatProcessing(image);
+        MatProcessing(image);
 
         if (i < DS_TRAIN) {
             saveLabel(train_label, age);
