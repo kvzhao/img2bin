@@ -2,6 +2,8 @@
 #include <sys/types.h>
 #include <dirent.h>
 #include <errno.h>
+#include <stdio.h>
+#include <stdlib.h>
 // opencv
 #include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/highgui/highgui.hpp>
@@ -14,11 +16,14 @@
 using namespace std;
 using namespace cv;
 
-int saveLabel (ofstream& out, const int l) {
-    if ( l <= 0 ) {
+int saveLabel (ofstream& out, const int* l) {
+    if ( *l <= 0 ) {
         return 0;
     }
-    out.write((char*)&l, sizeof(int));
+    cout << *l << " = label int\n";
+    //snprintf(c, sizeof(c), "%d", l);
+    //cout << atoi(c) << " label\n";
+    out.write((char*)l, sizeof(int));
     return 1;
 }
 
@@ -113,44 +118,58 @@ int getdir (string dir, vector<string> &files)
     return 0;
 }
 
-const double KVALID_RATIO = 0.8;
-const char* image_train_filename= "morph-image-train.bin";
-const char* label_train_filename= "morph-label-train.bin";
-const char* image_test_filename = "morph-image-test.bin";
-const char* label_test_filename = "morph-label-test.bin";
+string fn_filter(string s) {
+   int gender_pos = s.find_first_of("F");
+   if (gender_pos == std::string::npos)
+           gender_pos = s.find_first_of("M");
+   // for most of people, age is 2-digit information
+   string sAge = s.substr(gender_pos+1, 2);
+   return sAge;
+}
+
+const char* image_filename= "image.bin";
+const char* label_filename= "label.bin";
 
 int main (int argc, char** argv) {
-    if ( argc != 2 ) {
-        cout << "Usage: [DIR_Path]\n";
+    if ( argc != 5 ) {
+        cout << "Usage: [DIR_Path] [start_id] [end_id] [output-prefix]\n";
         return -1;
      }
 
     char* dir_path = argv[1];
-    char* outfilename = argv[2];
+    string outprefix= string(argv[4]);
+    int start_ind = atoi(argv[2]);
+    int end_ind = atoi(argv[3]);
 
     vector<string> files;
     getdir(dir_path, files);
 
-    int DS_SIZE = files.size();
-    int DS_TRAIN = (int)(DS_SIZE * KVALID_RATIO);
-    int DS_TEST  = DS_SIZE - DS_TRAIN;
-    cout << "The Dir contains " << DS_SIZE << " visible files\n";
-    cout << "Training : " << DS_TRAIN << " Testing: " << DS_TEST << "\n";
+    int ds_size = files.size();
 
-    ofstream train_image(image_train_filename, ios::out | ios::binary);
-    ofstream train_label(label_train_filename, ios::out | ios::binary);
-    ofstream test_image(image_test_filename, ios::out | ios::binary);
-    ofstream test_label(label_test_filename, ios::out | ios::binary);
+    if (start_ind < 0) return -1;
+    if (end_ind <  0) 
+        return -1;
+    else if(end_ind ==0)
+        end_ind = ds_size;
 
-    for (int i = 0; i < DS_SIZE; i++) {
-        static int counter = DS_SIZE /100;
+    const int data_num = end_ind- start_ind;
+
+    cout << "The Dir contains " << ds_size << " visible files\n";
+    cout << "  convert item #: " << start_ind << " to " << end_ind << ", "
+        << data_num << " items in total\n";
+
+    string image_filename = outprefix + "-image.bin";
+    string label_filename = outprefix + "-label.bin";
+
+    ofstream img_file(image_filename.c_str(), ios::out | ios::binary);
+    ofstream lab_file(label_filename.c_str(), ios::out | ios::binary);
+
+    for (int i = start_ind; i < data_num; i++) {
         string img_name= files.at(i);
-        int gender_pos = img_name.find_first_of("F");
-        if (gender_pos == std::string::npos)
-           gender_pos = img_name.find_first_of("M");
-        // for most of people, age is 2-digit information
-        string sAge = img_name.substr(gender_pos+1, 2);
-        int age = std::stoi(sAge);
+        cout << " file name : " << img_name;
+        string str_age = fn_filter(img_name);
+        int age = std::stoi(str_age);
+        cout << " -> age: " << age << "\n";
         // CV_LOAD_IMAGE_...
         Mat image = imread(string(dir_path) +img_name, CV_LOAD_IMAGE_GRAYSCALE);   // Read the file
 
@@ -161,22 +180,14 @@ int main (int argc, char** argv) {
         // I MUST DO SOME IMG PROCESSING HERE!
         MatProcessing(image);
 
-        if (i < DS_TRAIN) {
-            saveLabel(train_label, age);
-            saveMat(train_image, image);
-        } else {
-            saveLabel(test_label, age);
-            saveMat(test_image, image);
-        }
-        if ( i /counter ==0) {
-            cout << ".";
-        }
-    }
+        // Write the data to bin
+        saveMat(img_file, image);
+        saveLabel(lab_file, &age);
 
-    train_image.close();
-    train_label.close();
-    test_image.close();
-    test_label.close();
+    } // end of for loop
+
+    img_file.close();
+    lab_file.close();
 
     return 0;
 }
