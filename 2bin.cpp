@@ -20,7 +20,7 @@ int saveLabel (ofstream& out, const int* l) {
     if ( *l <= 0 ) {
         return 0;
     }
-    cout << *l << " = label int\n";
+    //cout << *l << " = label int\n";
     //snprintf(c, sizeof(c), "%d", l);
     //cout << atoi(c) << " label\n";
     out.write((char*)l, sizeof(int));
@@ -152,7 +152,7 @@ int main (int argc, char** argv) {
     else if(end_ind ==0)
         end_ind = ds_size;
 
-    const int data_num = end_ind- start_ind;
+    const int data_num = end_ind- start_ind +1;
 
     cout << "The Dir contains " << ds_size << " visible files\n";
     cout << "  convert item #: " << start_ind << " to " << end_ind << ", "
@@ -166,10 +166,10 @@ int main (int argc, char** argv) {
 
     for (int i = start_ind; i < data_num; i++) {
         string img_name= files.at(i);
-        cout << " file name : " << img_name;
+        //cout << " file name : " << img_name;
         string str_age = fn_filter(img_name);
         int age = std::stoi(str_age);
-        cout << " -> age: " << age << "\n";
+        //cout << " -> age: " << age << "\n";
         // CV_LOAD_IMAGE_...
         Mat image = imread(string(dir_path) +img_name, CV_LOAD_IMAGE_GRAYSCALE);   // Read the file
 
