@@ -51,7 +51,7 @@ int saveMat (ofstream& out, const Mat& M) {
 }
 
 void MatProcessing(Mat &M) {
-    double scale = .1;
+    double scale = .075;
     Size dSiz(M.cols * scale, M.rows * scale);
     resize(M, M, dSiz);
 }
@@ -164,7 +164,7 @@ int main (int argc, char** argv) {
     ofstream img_file(image_filename.c_str(), ios::out | ios::binary);
     ofstream lab_file(label_filename.c_str(), ios::out | ios::binary);
 
-    for (int i = start_ind; i < data_num; i++) {
+    for (int i = start_ind; i < end_ind +1; i++) {
         string img_name= files.at(i);
         //cout << " file name : " << img_name;
         string str_age = fn_filter(img_name);
