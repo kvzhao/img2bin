@@ -11,12 +11,16 @@ int main(int argc, char **argv) {
     }
   DIR *d;
   struct dirent *dir;
+  static int counter =0;
   d = opendir(argv[1]);
   if (d) {
     while ((dir = readdir(d)) != NULL) {
-        if ( dir->d_name[0] != '.')
-          printf("%s\n", dir->d_name);
+        if ( dir->d_name[0] != '.') { 
+            counter++;
+            printf("%s\n", dir->d_name);
+        }
     }
+    printf("It constains %d items in total\n", counter);
     closedir(d);
   }
 
