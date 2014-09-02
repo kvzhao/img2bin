@@ -167,8 +167,8 @@ int main (int argc, char** argv) {
     for (int i = start_ind; i < end_ind +1; i++) {
         string img_name= files.at(i);
         //cout << " file name : " << img_name;
-        string str_age = fn_filter(img_name);
-        int age = std::stoi(str_age);
+        string str_label = fn_filter(img_name);
+        int label = std::stoi(str_label);
         //cout << " -> age: " << age << "\n";
         // CV_LOAD_IMAGE_...
         Mat image = imread(string(dir_path) +img_name, CV_LOAD_IMAGE_GRAYSCALE);   // Read the file
@@ -182,7 +182,7 @@ int main (int argc, char** argv) {
 
         // Write the data to bin
         saveMat(img_file, image);
-        saveLabel(lab_file, &age);
+        saveLabel(lab_file, &label);
 
     } // end of for loop
 
