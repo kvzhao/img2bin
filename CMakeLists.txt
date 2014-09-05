@@ -6,7 +6,10 @@ list( APPEND CMAKE_CXX_FLAGS "-std=c++0x ${CMAKE_CXX_FLAGS} -g -ftest-coverage -
 #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x -g -ftest-coverage -fprofile-arcs")
 include_directories(${INCLUDE_DIRS})
 include_directories( ${OpenCV_INCLUDE_DIRS} )
-add_executable(2bin 2bin.cpp)
+
+add_executable(2bin img2bin.cpp)
 add_executable(extrc faceCorpper.cpp)
+add_executable(genl genlist.cpp)
+
 target_link_libraries(2bin ${OpenCV_LIBS} )
 target_link_libraries(extrc ${OpenCV_LIBS} )
