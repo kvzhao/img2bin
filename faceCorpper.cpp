@@ -32,16 +32,21 @@ int saveMat (ofstream& out, const Mat& M);
 int readMat( const string& filename, Mat& M);
 int getdir (string dir, vector<string> &files);
 
+int rSiz_w =0;
+int rSiz_h =0;
 
 int main (int argc, char** argv) {
-    if ( argc != 3 ) {
-        cout << "Usage: [DIR_Path] [output-prefix]\n";
+    if ( argc != 5 ) {
+        cout << "Usage: [DIR_Path] [output-dir] resize [w, h]\n";
         return -1;
      }
     if( !face_cascade.load( face_cascade_name ) ){ printf("--(!)Error loading face cascade\n"); return -1; };
 
     string dir_path = string(argv[1]);
     string out_path = string(argv[2]);
+
+    rSiz_w = atoi(argv[3]);
+    rSiz_h = atoi(argv[4]);
 
     vector<string> files;
     getdir(dir_path, files);
@@ -142,11 +147,13 @@ void detectFace (const Mat& frame, Mat& face) {
         int h = faces_rect[i].height +60;
         if ( (y+h) > frame_gray.rows) h = faces_rect[i].height;
 
+        // including hair
         Rect face_hair(x, y, w, h);
+        // no hear, pure face
         Rect face_wo_hair(faces_rect[i].x, faces_rect[i].y, faces_rect[i].width, faces_rect[i].height);
 
         frame_gray(face_wo_hair).copyTo(face);
-        resize(face, face, Size(100, 120));
+        resize(face, face, Size(rSiz_w, rSiz_h));
     }
     //-- Show what you got
 }
