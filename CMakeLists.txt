@@ -7,4 +7,6 @@ list( APPEND CMAKE_CXX_FLAGS "-std=c++0x ${CMAKE_CXX_FLAGS} -g -ftest-coverage -
 include_directories(${INCLUDE_DIRS})
 include_directories( ${OpenCV_INCLUDE_DIRS} )
 add_executable(2bin 2bin.cpp)
+add_executable(extrc faceCorpper.cpp)
 target_link_libraries(2bin ${OpenCV_LIBS} )
+target_link_libraries(extrc ${OpenCV_LIBS} )
