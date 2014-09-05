@@ -16,8 +16,11 @@
 using namespace std;
 using namespace cv;
 
+static int male_num = 0;
+static int female_num = 0;
+
 int saveLabel (ofstream& out, const int* l) {
-    if ( *l <= 0 ) {
+    if ( *l < 0 ) {
         return 0;
     }
     //cout << *l << " = label int\n";
@@ -52,7 +55,8 @@ int saveMat (ofstream& out, const Mat& M) {
 
 void MatProcessing(Mat &M) {
     double scale = .075;
-    Size dSiz(M.cols * scale, M.rows * scale);
+    Size dSiz(32, 32);
+    //Size dSiz(M.cols * scale, M.rows * scale);
     resize(M, M, dSiz);
 }
 
@@ -118,13 +122,28 @@ int getdir (string dir, vector<string> &files)
     return 0;
 }
 
-string fn_filter(string s) {
+string age_filter(string s) {
    int gender_pos = s.find_first_of("F");
    if (gender_pos == std::string::npos)
            gender_pos = s.find_first_of("M");
    // for most of people, age is 2-digit information
    string sAge = s.substr(gender_pos+1, 2);
    return sAge;
+}
+
+string gender_filter (string s) {
+    string gender;
+    
+    // CAS
+    if( s[0] == 'M' ) {
+        gender = "1";
+        male_num++;
+    }
+    if( s[0] == 'F' ) {
+        female_num++;
+        gender = "0";
+    }
+   return gender;
 }
 
 const char* image_filename= "image.bin";
@@ -150,7 +169,7 @@ int main (int argc, char** argv) {
     if (end_ind <  0) 
         return -1;
     else if(end_ind ==0)
-        end_ind = ds_size;
+        end_ind = ds_size-1;
 
     const int data_num = end_ind- start_ind +1;
 
@@ -166,15 +185,20 @@ int main (int argc, char** argv) {
 
     for (int i = start_ind; i < end_ind +1; i++) {
         string img_name= files.at(i);
-        //cout << " file name : " << img_name;
-        string str_label = fn_filter(img_name);
-        int label = std::stoi(str_label);
+
+        // Extract age or gender from the image filename
+        string str_age = age_filter(img_name);
+        string str_gender = gender_filter(img_name);
+
+        int label = std::stoi(str_gender);
         //cout << " -> age: " << age << "\n";
+        cout << " -> gender: " << label << "\n";
+        
         // CV_LOAD_IMAGE_...
-        Mat image = imread(string(dir_path) +img_name, CV_LOAD_IMAGE_GRAYSCALE);   // Read the file
+        Mat image = imread(string(dir_path) +img_name, IMREAD_GRAYSCALE);   // Read the file
 
         if (image.empty()) {
-            cout << "something terrible happend\n";
+            cout << "something terrible happend when " << img_name << " called\n";
             return -1;
         }
         // I MUST DO SOME IMG PROCESSING HERE!
@@ -185,6 +209,10 @@ int main (int argc, char** argv) {
         saveLabel(lab_file, &label);
 
     } // end of for loop
+
+    cout << "Dataset contains " << male_num 
+        << " males and " << female_num 
+        << " females. \n";
 
     img_file.close();
     lab_file.close();
