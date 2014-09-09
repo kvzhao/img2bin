@@ -34,10 +34,11 @@ int getdir (string dir, vector<string> &files);
 
 int rSiz_w =0;
 int rSiz_h =0;
+bool with_hair = false;
 
 int main (int argc, char** argv) {
-    if ( argc != 5 ) {
-        cout << "Usage: [DIR_Path] [output-dir] resize [w, h]\n";
+    if ( argc != 6 ) {
+        cout << "Usage: [DIR_Path] [output-dir] resize [w, h] hair[0/1] \n";
         return -1;
      }
     if( !face_cascade.load( face_cascade_name ) ){ printf("--(!)Error loading face cascade\n"); return -1; };
@@ -47,6 +48,12 @@ int main (int argc, char** argv) {
 
     rSiz_w = atoi(argv[3]);
     rSiz_h = atoi(argv[4]);
+
+    int hair_flag = atoi(argv[5]);
+    if (hair_flag == 1)
+        with_hair = true;
+    else 
+        with_hair = false;
 
     vector<string> files;
     getdir(dir_path, files);
@@ -152,7 +159,11 @@ void detectFace (const Mat& frame, Mat& face) {
         // no hear, pure face
         Rect face_wo_hair(faces_rect[i].x, faces_rect[i].y, faces_rect[i].width, faces_rect[i].height);
 
-        frame_gray(face_wo_hair).copyTo(face);
+        if (with_hair) {
+            frame_gray(face_hair).copyTo(face);
+        } else {
+            frame_gray(face_wo_hair).copyTo(face);
+        }
         resize(face, face, Size(rSiz_w, rSiz_h));
     }
     //-- Show what you got
