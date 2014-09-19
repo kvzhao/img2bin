@@ -8,10 +8,11 @@
 #include <iostream>
 #include <fstream>
 #include <string>
+#include <sstream>
 
 using namespace std;
 
-enum dataset {CAS, HK, FD};
+enum dataset {CAS, HK, FD, MORPH_AGE};
 static int male_counter = 0, female_counter = 0;
 
 int label_filter(dataset ds, string filename) {
@@ -41,6 +42,18 @@ int label_filter(dataset ds, string filename) {
                 label =0; female_counter++;
             }
       break;
+
+        case MORPH_AGE: {
+            int gender_pos = filename.find_first_of("M");
+            if (gender_pos == string::npos) 
+                gender_pos = filename.find_first_of("F");
+            if (gender_pos == string::npos) 
+                cout << "error occurs\n";
+            string sAge = filename.substr(gender_pos +1, 2);
+           stringstream(sAge) >> label; 
+        }
+        break;
+
         default:
             break;
     }
@@ -50,9 +63,10 @@ int label_filter(dataset ds, string filename) {
 int main(int argc, char **argv) {
     if ( argc != 4) {
         cout << "[Usage] RootDir dataset_name list_name.txt\n" 
-            << "   1: CAS set\n"
-            << "   2: HK  set\n"
-            << "   3: FD  set\n";
+            << "   1: CAS gender\n"
+            << "   2: HK  gender\n"
+            << "   3: FD  gender\n" 
+            << "   4: MORPG age\n";
         return -1;
     }
   DIR *d;
@@ -82,6 +96,10 @@ int main(int argc, char **argv) {
                 case 3:
                     out << img_name << " " << label_filter(FD, img_name) << endl;
                 break;
+                case 4:
+                    out << img_name << " " << label_filter(MORPH_AGE, img_name) << endl;
+                break;
+
             }
 
             cout <<  img_name << "\n";

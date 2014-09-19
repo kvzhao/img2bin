@@ -10,6 +10,7 @@ include_directories( ${OpenCV_INCLUDE_DIRS} )
 add_executable(2bin img2bin.cpp)
 add_executable(extrc faceCorpper.cpp)
 add_executable(genl genlist.cpp)
+add_executable(sepl sepl.cpp)
 
 target_link_libraries(2bin ${OpenCV_LIBS} )
 target_link_libraries(extrc ${OpenCV_LIBS} )
