@@ -11,6 +11,8 @@ add_executable(2bin img2bin.cpp)
 add_executable(extrc faceCorpper.cpp)
 add_executable(genl genlist.cpp)
 add_executable(sepl sepl.cpp)
+add_executable(concat ImgConcatenation.cpp)
 
 target_link_libraries(2bin ${OpenCV_LIBS} )
 target_link_libraries(extrc ${OpenCV_LIBS} )
+target_link_libraries(concat ${OpenCV_LIBS} )
