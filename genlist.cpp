@@ -12,9 +12,29 @@
 
 using namespace std;
 
-enum dataset {CAS, HK, FD, MORPH_AGE};
+enum dataset {CAS, HK, FD, MORPH_AGE, MORPH_AGE_GROUP};
 static int male_counter = 0, female_counter = 0;
 
+int groupConverter(int age) {
+     int label;
+     if (age >= 0 && age < 20) {
+     label = 0;
+     } else
+     if (age >= 20 && age < 30) {
+     label = 1;
+     } else
+     if (age >= 30 && age < 40) {
+     label = 2;
+     } else
+     if (age >= 40 && age < 50) {
+     label = 3;
+     } else
+     if (age >= 50 && age < 90) {
+     label = 4;
+     }
+     return label;
+}
+                                  
 int label_filter(dataset ds, string filename) {
     int label =-1;
     switch (ds) {
@@ -54,6 +74,18 @@ int label_filter(dataset ds, string filename) {
         }
         break;
 
+        case MORPH_AGE_GROUP: {
+            int gender_pos = filename.find_first_of("M");
+            if (gender_pos == string::npos) 
+                gender_pos = filename.find_first_of("F");
+            if (gender_pos == string::npos) 
+                cout << "error occurs\n";
+            string sAge = filename.substr(gender_pos +1, 2);
+           stringstream(sAge) >> label; 
+           label = groupConverter(label);
+        }
+        break;
+
         default:
             break;
     }
@@ -66,7 +98,8 @@ int main(int argc, char **argv) {
             << "   1: CAS gender\n"
             << "   2: HK  gender\n"
             << "   3: FD  gender\n" 
-            << "   4: MORPG age\n";
+            << "   4: MORPG age\n"
+            << "   5: MORPG age group\n";
         return -1;
     }
   DIR *d;
@@ -98,6 +131,9 @@ int main(int argc, char **argv) {
                 break;
                 case 4:
                     out << img_name << " " << label_filter(MORPH_AGE, img_name) << endl;
+                break;
+                case 5:
+                    out << img_name << " " << label_filter(MORPH_AGE_GROUP, img_name) << endl;
                 break;
 
             }

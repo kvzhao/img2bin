@@ -1,9 +1,26 @@
 #include "labelParser.h"
 
-
 labelParser::labelParser(vector<string> &list) {
     nMale_ = 0; nFemale_ =0;
-    nameList = list;
+
+    vector<string>::const_iterator itr = list.begin();
+
+    if (itr != list.end()){ 
+        // if the list is not null, allocate the namelist
+        nameList.reserve(list.size());
+
+        // find format
+        int dot = itr->find_first_of(".");
+        format_ = (*itr).substr(dot);
+
+        // exclude format in name
+        while(itr != list.end()) {
+            nameList.push_back(itr->substr(0, itr->find_first_of(format_)));
+            ++itr;
+        }
+    }
+
+
     for (int i =0; i < ngroup; i++) {
         numOfGroup_[i] = 0;
     }
@@ -44,10 +61,12 @@ bool labelParser::parse(DS_NAME name) {
     switch (name) {
         case MORPH: {
             vector<string>::const_iterator itr = nameList.begin();
+            // get format (including dot . )
             for (; itr != nameList.end(); ++itr) {
                 int gender_pos = 0;
+                // exclude format
                 string cur_name = *itr;
-                cout << cur_name;
+                //DEBUG cout << cur_name << endl;
                 if ((gender_pos = cur_name.find_first_of("M")) != string::npos) {
                     // Male
                     nMale_++;

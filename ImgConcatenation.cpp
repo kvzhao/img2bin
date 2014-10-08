@@ -35,7 +35,7 @@ bool with_hair = false;
 
 int main (int argc, char** argv) {
     if ( argc != 3 ) {
-        cout << "Usage: [DIR_Path] [output-dir] resize [w, h] hair[0/1] \n";
+        cout << "Usage: [DIR_Path] [Name List]\n";
         return -1;
      }
 
@@ -63,21 +63,25 @@ int main (int argc, char** argv) {
     }
     
     const int klist_size = image_list.size();
-    int base_index = rand() % klist_size;
-    cout << "Randomly pick : " << image_list[base_index] << " as our baseline\n";
-    int base_label = label_list[base_index];
+    const int base_num = 5;
+    
+    for (size_t j= 0; j < base_num; ++j) {
+        int base_index = rand() % klist_size;
+        cout << "Randomly pick : " << image_list[base_index] << " as our baseline\n";
+        int base_label = label_list[base_index];
 
-    for (int i =0; i < klist_size; ++i) {
-        Mat image = imread(dir_path+image_list[i], IMREAD_GRAYSCALE);   // Read the file
-        if (image.empty()) { cout << "the image in " << dir_path + image_list[i] << " is empty\n"; }
-        Mat base = imread(dir_path+image_list[base_index], IMREAD_GRAYSCALE);   // Read the file
-        if (base.empty()) { cout << "the baseline is empty\n"; }
-        Mat H;
-        hconcat(image, base, H);
-        string out_path = out_dir + image_list[i];
-        saveImage(H, out_path);
-        int newlabel = (label_list[i] < base_label) ? 1 :0;
-        out << image_list[i] << " " << newlabel << endl;
+        for (int i =0; i < klist_size; ++i) {
+            Mat image = imread(dir_path+image_list[i], IMREAD_GRAYSCALE);   // Read the file
+            if (image.empty()) { cout << "the image in " << dir_path + image_list[i] << " is empty\n"; }
+            Mat base = imread(dir_path+image_list[base_index], IMREAD_GRAYSCALE);   // Read the file
+            if (base.empty()) { cout << "the baseline is empty\n"; }
+            Mat H;
+            hconcat(image, base, H);
+            string out_path = out_dir + to_string(j) + image_list[i];
+            saveImage(H, out_path);
+            int newlabel = (label_list[i] < base_label) ? 1 :0;
+            out << to_string(j) + image_list[i] << " " << newlabel << endl;
+        }
     }
 
     return 0;

@@ -19,28 +19,38 @@ enum LB_TYPE {AGE, GENDER};
 
 class labelParser {
     public: 
+        labelParser();
         labelParser(vector<string> &list) ;
         bool parse(DS_NAME);
 
+        void readFromFile(string name);
         void displayInfo();
         void saveInfo(LB_TYPE, string path);
 
+        // Get functions
         vector<unsigned int> getAge() const {return vAgeValue_;};
         vector<unsigned int> getGender() const {return vGender_;};
-        int getSizeOfGroup(int idx) const { if( idx >=0 && idx < ngroup) return numOfGroup_[idx];};
+        vector<string> getNamelist() const {return nameList;};
+
+        int getSizeOfGroup(int idx) const { if( idx >=0 && idx < ngroup) { return numOfGroup_[idx];} };
     protected:
         unsigned int groupConverter(unsigned int);
     private:
+        string format_;
         vector<string> nameList;
         // number information
         unsigned int num_, nMale_, nFemale_;
-
         static const unsigned int ngroup = 5;
 
         // Labels
+        // Label in age value
         vector<unsigned int> vAgeValue_;
+        // Label in group number
         vector<unsigned int> vAgeGroup_;
+        // Record num of people in each group
         unsigned int numOfGroup_[ngroup];
+
+        // Binay Label in gender
         vector<unsigned int> vGender_;
 
 };
