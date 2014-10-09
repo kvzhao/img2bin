@@ -3,6 +3,7 @@
 
 #include <string>
 #include <vector>
+#include <algorithm>
 #include <iostream>
 #include <sstream>
 #include "dsList.h"
@@ -29,9 +30,13 @@ class labelParser {
 
         // Get functions
         vector<unsigned int> getAge() const {return vAgeValue_;};
+        vector<unsigned int> getAgeGroup() const {return vAgeGroup_;};
         vector<unsigned int> getGender() const {return vGender_;};
         vector<string> getNamelist() const {return nameList;};
-
+        inline unsigned int getMinAge() const 
+        {vector<unsigned int>::const_iterator it = std::min_element(vAgeValue_.begin(), vAgeValue_.end());};
+        inline unsigned int getMaxAge() const 
+        {vector<unsigned int>::const_iterator it = std::max_element(vAgeValue_.begin(), vAgeValue_.end());};
         int getSizeOfGroup(int idx) const { if( idx >=0 && idx < ngroup) { return numOfGroup_[idx];} };
     protected:
         unsigned int groupConverter(unsigned int);
