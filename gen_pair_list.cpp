@@ -17,7 +17,7 @@ const static int group_num = 5;
 
 int main (int argc, char* argv[]) {
     if (argc != 4) {
-        cout << "Usage: [ds list] [#of base] [output prefix]\n";
+        cout << "Usage: [ds_list] [#of base] [output_prefix]\n";
         return -1;
     }
 

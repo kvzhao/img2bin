@@ -9,12 +9,11 @@ include_directories(${OpenCV_INCLUDE_DIRS} )
 
 add_executable(2bin img2bin.cpp)
 add_executable(extrc faceCorpper.cpp)
-add_executable(genl genlist.cpp)
-add_executable(imgcat ImgCat.cpp)
+add_executable(genlist genlist.cpp)
+add_executable(genl genl.cpp dsList.cpp)
 
 add_executable(ds main.cpp dsList.cpp labelParser.cpp)
 
 target_link_libraries(2bin ${OpenCV_LIBS} )
 target_link_libraries(extrc ${OpenCV_LIBS} )
-target_link_libraries(imgcat ${OpenCV_LIBS} )
 target_link_libraries(ds ${OpenCV_LIBS} )
