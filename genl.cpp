@@ -9,6 +9,7 @@
 #include <fstream>
 #include <string>
 #include <sstream>
+#include "dsList.h"
 
 using namespace std;
 
@@ -93,56 +94,23 @@ int label_filter(dataset ds, string filename) {
 }
 
 int main(int argc, char **argv) {
-    if ( argc != 4) {
-        cout << "[Usage] RootDir dataset_name list_name.txt\n" 
-            << "   1: CAS gender\n"
-            << "   2: HK  gender\n"
-            << "   3: FD  gender\n" 
-            << "   4: MORPG age\n"
-            << "   5: MORPG age group\n";
+    if ( argc != 3) {
+        cout << "[Usage] RootDir list_name\n";
         return -1;
     }
   DIR *d;
   struct dirent *dir;
   static int counter =0;
   
-  int ds_flag = atoi(argv[2]);
-
-  string out_name = string(argv[3]);
+  string ds_path  = string(argv[1]);
+  string out_name = string(argv[2]);
   ofstream out;
 
-  out.open(out_name.c_str());
+  dsList ds(ds_path);
+  ds.readDir();
+  vector<string> lines = ds.getList();
 
-  d = opendir(argv[1]);
-  if (d || out.is_open()) {
-    while ((dir = readdir(d)) != NULL) {
-        if ( dir->d_name[0] != '.') { 
-            string img_name = dir->d_name;
-            counter++;
-            switch(ds_flag) {
-                case 1:
-                    out << img_name << " " << label_filter(CAS, img_name) << endl;
-                break;
-                case 2:
-                    out << img_name << " " << label_filter(HK, img_name) << endl;
-                break;
-                case 3:
-                    out << img_name << " " << label_filter(FD, img_name) << endl;
-                break;
-                case 4:
-                    out << img_name << " " << label_filter(MORPH_AGE, img_name) << endl;
-                break;
-                case 5:
-                    out << img_name << " " << label_filter(MORPH_AGE_GROUP, img_name) << endl;
-                break;
-
-            }
-        }
-    }
-    printf("It constains %d items in total\n  -- males: %d, females: %d\n", counter, male_counter
-            , female_counter);
-    closedir(d);
-  }
-
+  out.open(out_name.c_str(), ios::out);
+  out.close();
   return(0);
 }
