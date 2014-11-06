@@ -15,6 +15,7 @@ const int num_group = 8;
 const int num_baseline = 2;
 const int baseline_shuffle_times = 1;
 const static double train_test_ratio = .8;
+bool is_shuffle = false;
 
 int main (int argc, char* argv[]) {
     if (argc != 4) {
@@ -163,21 +164,50 @@ int main (int argc, char* argv[]) {
 
     cout << "traing: " << num_training_data << "\ttesting: " << num_testing_data << endl;
 
-    string test_list = out_prefix + "pair_list_test";
-    string train_list = out_prefix + "pair_list_train";
+    string test_list = out_prefix + "-pair_list_test";
+    string train_list = out_prefix + "-pair_list_train";
     ofstream test(test_list.c_str());
     ofstream train(train_list.c_str());
 
     // shuffle namelist
-    vector<string> candidates;
-/*
-    for(int i=0; i < num_total; ++i) {
-       if(i < num_training_data) {
-          train << 
+    vector<string> faces = name_list;
+    std::random_shuffle(faces.begin(), faces.end());
+
+    int repeat =0, base_index =0;
+    for(int i = 0; i != num_total; ++i) {
+       /* Avoid over-fitting to the only 5 or 10 baseline pictures */
+       if (is_shuffle) {
+          repeat++;
+          if (repeat > baseline_shuffle_times) {
+             repeat = 0;
+             base_index++;
+             if (base_index >= num_baseline)
+                base_index = 0;
+          }
+          for(int num=0; num < num_group; ++num) {
+             if (num < num_training_data) {
+                   train << faces[i] << " " << dsMap[faces[i]]
+                     << baselines[num][base_index] << " " << dsMap[baselines[num][base_index]] << "\n";
+             } else {
+                   test << faces[i] << " " << dsMap[faces[i]]
+                     << baselines[num][base_index] << " " << dsMap[baselines[num][base_index]] << "\n";
+             }
+          }
        } else {
+          /* Take several baseline in the same group comparing to the individual */
+          for(int num=0; num < num_group; ++num) {
+             for (int j=0; j < num_baseline; ++j) {
+                if (num < num_training_data) {
+                   train << faces[i] << " " << dsMap[faces[i]]
+                     << baselines[num][j] << " " << dsMap[baselines[num][j]] << "\n";
+               } else {
+                   test << faces[i] << " " << dsMap[faces[i]]
+                     << baselines[num][j] << " " << dsMap[baselines[num][j]] << "\n";
+               }
+             }
+          }
        }
     }
-    */
 
     train.close(); test.close();
     return 0;
