@@ -12,8 +12,8 @@ add_executable(extrc faceCorpper.cpp)
 add_executable(genlist genlist.cpp)
 add_executable(genl genl.cpp dsList.cpp)
 
-add_executable(ds main.cpp dsList.cpp labelParser.cpp)
+add_executable(pair_list gen_pair_list.cpp) 
 
 target_link_libraries(2bin ${OpenCV_LIBS} )
 target_link_libraries(extrc ${OpenCV_LIBS} )
-target_link_libraries(ds ${OpenCV_LIBS} )
+target_link_libraries(pair_list ${OpenCV_LIBS} )

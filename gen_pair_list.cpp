@@ -1,4 +1,5 @@
 #include <iostream>
+#include <sstream>
 #include <string>
 #include <vector>
 #include <map>
@@ -8,102 +9,176 @@
 #include <time.h>
 #include <stdlib.h>
 
-#include "dsList.h"
-#include "labelParser.h"
-
 using namespace std;
 
-const static int group_num = 5;
+const int num_group = 8;
+const int num_baseline = 2;
+const int baseline_shuffle_times = 1;
+const static double train_test_ratio = .8;
 
 int main (int argc, char* argv[]) {
     if (argc != 4) {
         cout << "Usage: [ds_list] [#of base] [output_prefix]\n";
         return -1;
     }
-
-    string list_name = string(argv[1]);
-    int base_num = atoi(argv[2]); // assign
     srand(time(NULL));
 
+    string list_filename = string(argv[1]);
+    int base_num = atoi(argv[2]); // assign
+    string out_prefix = string(argv[3]);
+
     // Get directory name
-    string outname = string(argv[3]);
+    ifstream in(list_filename);
 
-    ifstream in(list_name);
-
-    // Get name list from directory
-    vector<string> nlist;
+    // Get name list from the file
+    vector<string> lines;
+    string line;
+    while (in >> line) {
+       lines.push_back(line);
+    }
 
     // Parsing
-    labelParser lp(nlist);
-    lp.parse(MORPH);
-    nlist = lp.getNamelist();
-    vector<unsigned int> labels = lp.getAge();
-
-    // Strategy here
-    for (int i=0; i < group_num; i++ ) {
-        cout << "num in " << i << " group " << lp.getSizeOfGroup(i) << endl;
+    vector<int> gender_list;
+    vector<string> name_list = lines;
+    vector<int> age_list;
+	/* statistic information*/
+    int num_male = 0, num_female = 0, num_total =0;
+    // get format (including dot . )
+    num_total = lines.size();
+    vector<string>::const_iterator itr = lines.begin();
+    for (; itr != lines.end(); ++itr) {
+        int gender_pos = 0;
+        // exclude format
+        string cur_name = *itr;
+	// cout << cur_name << endl;
+        if ((gender_pos = cur_name.find_first_of("M")) != string::npos) {
+           // Male
+           num_male++;
+           gender_list.push_back(1);
+        } else 
+        if ((gender_pos = cur_name.find_first_of("F")) != string::npos) {
+          // Female
+          num_female++;
+          gender_list.push_back(0);
+        } else {
+        //      cout << " format error! \n";
+        }
+        // age length must be 2
+         stringstream sAge(cur_name.substr(gender_pos +1, 2));
+         int age; 
+         sAge >> age;
+         age_list.push_back(age);   
     }
+    int max_age = *std::max_element(age_list.begin(), age_list.end());
+    int min_age = *std::min_element(age_list.begin(), age_list.end());
+    double class_range = (max_age-min_age)/num_group;
 
-    vector<string>::iterator dsitr = nlist.begin();
-    vector<unsigned int>::iterator lbitr = labels.begin();
-    
+    cout << "Total: " << num_total << " with " << num_female << " females and " 
+	<< num_male << " males.\nMax age: " << max_age << " min age: " << min_age 
+	<< " set class range as: " << class_range
+	<< endl;
+
+    // Forming a map
+    vector<string>::iterator iname = name_list.begin();
+    vector<int>::iterator ilabel = age_list.begin();
+
     // Create the global map
-    map<string, unsigned int> facebook; // yeh, it's a joke
-    while(dsitr != nlist.end()) {
-       facebook.insert(pair<string, unsigned>(*dsitr, *lbitr));
-       ++dsitr; ++lbitr;
+    map<string, int> dsMap;
+    while(iname != name_list.end() && ilabel != age_list.end()) {
+       dsMap.insert(pair<string, int>(*(iname++), *(ilabel++)));
     }
 
-    // Create 5 groups
-    vector<vector<string> > groups;
-    groups.reserve(group_num);
+    // Create N groups contains M_i data
+    vector<vector<string> > name_in_groups;
+    vector<vector<string> > baselines;
+    vector<int> size_of_each_group(num_group, 0);
+    name_in_groups.reserve(num_group);
+   baselines.reserve(num_group);
 
-    dsitr = nlist.begin();
-    vector<unsigned int> glabel = lp.getAgeGroup();
-    lbitr = glabel.begin();
-
-    while (dsitr != nlist.end() ) {
-//       cout << *lbitr << " " << *dsitr << endl; 
-       groups[*lbitr].push_back(*dsitr);
-       ++dsitr; ++lbitr;
+    for(std::vector<string>::iterator it = name_list.begin(); it != name_list.end(); ++it) { 
+          int age = dsMap[*it];
+       for(int ng =0; ng != num_group; ++ng) {
+          int lw_bound = min_age + ng * class_range;
+          int up_bound = min_age + (1+ng) * class_range;
+          if (age >= lw_bound && age <= up_bound) {
+             name_in_groups[ng].push_back(*it);
+             size_of_each_group[ng]++;
+          }
+       }
     }
 
-    // Select baseline 
-    vector<string> baseline;
-    vector<string>::const_iterator it;
-    for (size_t i=0; i != group_num; ++i) {
-       it = groups[i].begin();
-       int gsize;
+    // group information
+    for (int i=0; i !=num_group; ++i) {
+       int lw_bound = min_age + i * class_range;
+       int up_bound = min_age + (1+i) * class_range;
+       cout << "Group size: " << size_of_each_group[i] << endl;
+       cout << "[ " << lw_bound << " ,"  << up_bound << " ]\n" << endl;
+    }
 
-       if (it == groups[i].end()) {
-          cout << "Group " << i << " is an empty group\n";
-          continue;
+    int num_training_data = num_total * train_test_ratio;
+    int num_testing_data  = num_total - num_training_data;
+
+    // writh group list
+    string class_test_list = out_prefix + "-class_list_test_sequence";
+    string class_train_list = out_prefix + "-class_list_train_sequence";
+    ofstream class_test(class_test_list.c_str());
+    ofstream class_train(class_train_list.c_str());
+/*
+    map<string, int> class_map;
+    for (int i=0; i < num_group; ++i) {
+       for(int num=0; num < name_in_groups[i].size(); ++num) {
+          if (i > 4)
+            class_map.insert(pair<string, int>(name_in_groups[i][num], 5));
+          else
+            class_map.insert(pair<string, int>(name_in_groups[i][num], i));
+       }
+    }
+    */
+
+    for (int i=0; i < num_group; ++i) {
+       for(int num=0; num < name_in_groups[i].size(); ++num) {
+          if (num < name_in_groups[i].size() * train_test_ratio) {
+             class_train << name_in_groups[i][num] << "\t" << ((i>4)?5:i) << "\n";
+          } else {
+             class_test << name_in_groups[i][num] << "\t" << ((i>4)?5:i) << "\n";
+          }
+       }
+    }
+    
+   // close
+    class_train.close();
+    class_test.close();
+
+    // Select Baselines
+    for (int i=0; i < num_group; ++i) {
+       for (int b=0; b < num_baseline; ++b) {
+          int index = rand() % size_of_each_group[i];
+          if (index < size_of_each_group[i]) {
+             string base_name = name_in_groups[i][index];
+             baselines[i].push_back(base_name);
+             cout << "Baseline in " << i << " is " << base_name << endl;
+          }
+       }
+    }
+
+    cout << "traing: " << num_training_data << "\ttesting: " << num_testing_data << endl;
+
+    string test_list = out_prefix + "pair_list_test";
+    string train_list = out_prefix + "pair_list_train";
+    ofstream test(test_list.c_str());
+    ofstream train(train_list.c_str());
+
+    // shuffle namelist
+    vector<string> candidates;
+/*
+    for(int i=0; i < num_total; ++i) {
+       if(i < num_training_data) {
+          train << 
        } else {
-          gsize = groups[i].size();
-       }
-
-       for (size_t j =0; j < base_num; ++j) {
-          size_t baseIdx = rand() % gsize +1;
-          cout << "Select #" << baseIdx  << " person who is " 
-            << it[baseIdx] << endl; 
-          baseline.push_back(it[baseIdx]);
        }
     }
+    */
 
-    // Generate the list
-    ofstream out(outname.c_str());
-
-    // Same ID versus Different baseliner
-    it = nlist.begin();
-    while (it != nlist.end()) { 
-         for (size_t i =0; i != baseline.size(); ++i) {
-            if (*it != baseline[i]) {
-                out << *it +".JPG" << "\t" << facebook[*it] << "\t"
-                   << baseline[i] +".JPG" << "\t" << facebook[baseline[i]] << endl;
-            }
-         }
-         ++it;
-    }
-
+    train.close(); test.close();
     return 0;
 }
